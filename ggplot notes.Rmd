@@ -1,0 +1,376 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Intial Setup
+
+```{r}
+#setup working directory
+setwd("C:/Users/natha/Dropbox/R_training")
+
+#load libraries
+library(tidyverse)
+library(ggthemes)
+df <- read_csv("housing.csv")
+
+```
+
+Overview
+Layers in Building a Plot
+1. Data 
+2. Aesthetics - Scales which data are mapped on 
+3. Geometries - Shapes used to represent data
+4. Facets - Splitting by rows and columns
+5. Statistics - Models and summaries
+6. Coordinates - Space used for plotting
+7. Theme - Design elements
+
+# General Format
+```{r}
+
+#basics
+df %>%
+  ggplot(aes()) +
+  geom()
+
+#labels
++ labs (title = "Nate's Test Plot",
+subtitle = "Testing formatting",
+x = "Date"
+y = "Price ($M)",
+color = "Region"
+)
+
+#themes
++ theme_fivethirtyeight()
++ theme(axis.title = element_text())    --add the axis titles back in
+
+#emphasize Data
++ geom_line (size = 1.5, alpha = 0.8)
++ scale_linetype_manual (values = c("dashed", "solid"), guide = "none")
+
+#use a set of colors from a package
++ scale_color_brewer (palette = "Set1")
+
+#Manual determine colors
+myColors = c("#A5511A", #DFC27D")
+
++ scaled_color_manual (values = myColors)
++ theme(text = element_text(family = "Rubik"))
+
+```
+
+# One Variable (continuous)
+
+```{r}
+# histogram
+df %>%
+  ggplot(aes(median_income)) + 
+  geom_histogram()
+
+# density
+df %>%
+  ggplot(aes(median_income)) + 
+  geom_density()
+
+df %>%
+  ggplot(aes(median_income)) + 
+  geom_dotplot()
+
+df %>%
+  ggplot(aes(median_income)) + 
+  geom_freqpoly()
+
+df %>%
+  ggplot(aes(sample=median_income)) + 
+  geom_qq()
+
+df %>%
+  ggplot(aes(ocean_proximity)) + 
+  geom_bar()
+
+
+```
+
+# Two Variables (both continuous)
+
+```{r}
+# histogram
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_point()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_quantile()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_rug()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_smooth()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_bin2d()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_density_2d()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_hex()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_area()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_line()
+
+df %>%
+  ggplot(aes(total_rooms,total_bedrooms)) + 
+  geom_step()
+
+```
+
+# Two Variables (one discrete, one continuous)
+
+```{r}
+# histogram
+df %>%
+  ggplot(aes(ocean_proximity,total_bedrooms)) + 
+  geom_col()
+
+df %>%
+  ggplot(aes(ocean_proximity,total_bedrooms)) + 
+  geom_boxplot()
+
+df %>%
+  ggplot(aes(ocean_proximity,total_bedrooms)) + 
+  geom_dotplot(binaxis = "y", stackdir = "center")
+
+df %>%
+  ggplot(aes(ocean_proximity,total_bedrooms)) + 
+  geom_violin()
+
+```
+
+# Two Variables (two discrete)
+
+```{r}
+# histogram
+df$ocean_proximity <- as.factor(df$ocean_proximity)
+df$median_income <- as.factor(df$median_income)
+
+df %>%
+  ggplot(aes(ocean_proximity,median_income)) + 
+  geom_count()
+
+df %>%
+  ggplot(aes(ocean_proximity,median_income)) + 
+  geom_jitter()
+
+# scatterplot
+df %>%
+  ggplot(mapping = aes(x = total_rooms, y = total_bedrooms,color=ocean_proximity)) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+
+# line graph
+df %>%
+  ggplot(mapping = aes(x = total_rooms, y = median_house_value)) + 
+  geom_line()
+
+# bar chart
+df %>%
+  ggplot(mapping = aes(x = ocean_proximity, fill = ocean_proximity)) + 
+  geom_bar()+ 
+  scale_fill_discrete()
+
+#labels on bars example
+geom_text(aes(label = freq, y = freq+10), size = 10)
+
+df %>% 
+  group_by(ocean_proximity) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  mutate(prox = as.factor(ocean_proximity), 
+         prox = fct_inorder(ocean_proximity)) %>%
+  ggplot(aes(x = prox,
+             y = n,
+             fill = prox)) +
+  geom_bar(stat = "identity",
+           show.legend = F,
+           color = "black") +
+  geom_text(aes(label = n, y = n + 50, size = 2
+  ))
+
+
+
+
+
+```
+
+Geom
+
+# Graphical primitives
+geom_blank(): display nothing. Most useful for adjusting axes limits using data
+geom_point(): points
+geom_path(): paths
+geom_ribbon(): ribbons, a path with vertical thickness
+geom_segment(): a line segment, specified by start and end position
+geom_rect(): rectangles
+geom_polygon(): filled polygons
+geom_text(): text
+
+# One variable
+## Discrete
+geom_bar(): display distribution of discrete variable
+
+## Continuous
+geom_histogram(): bin and count continuous variable, display with bars
+geom_density(): smoothed density estimate
+geom_dotplot(): stack individual points into a dot plot
+geom_freqpoly(): bin and count continuous variable, display with lines
+
+# Two variables
+## Both continuous
+geom_point(): scatterplot
+geom_quantile(): smoothed quantile regression
+geom_rug(): marginal rug plots
+geom_smooth(): smoothed line of best fit
+geom_text(): text labels
+## Show distribution
+geom_bin2d(): bin into rectangles and count
+geom_density2d(): smoothed 2d density estimate
+geom_hex(): bin into hexagons and count
+## At least one discrete
+geom_count(): count number of point at distinct locations
+geom_jitter(): randomly jitter overlapping points
+## One continuous, one discrete
+geom_bar(stat = "identity"): a bar chart of precomputed summaries
+geom_boxplot(): boxplots
+geom_violin(): show density of values in each group
+## One time, one continuous
+geom_area(): area plot
+geom_line(): line plot
+geom_step(): step plot
+# Display uncertainty
+geom_crossbar(): vertical bar with center
+geom_errorbar(): error bars
+geom_linerange(): vertical line
+geom_pointrange(): vertical line with center
+# Spatial
+geom_map(): fast version of geom_polygon() for map data
+# Three variables
+geom_contour(): contours
+geom_tile(): tile the plane with rectangles
+geom_raster(): fast version of geom_tile() for equal sized tiles
+
+```{r}
+dplot <- ggplot(diamonds, aes(color, fill = cut)) + 
+  xlab(NULL) + ylab(NULL) + theme(legend.position = "none")
+# position stack is the default for bars, so `geom_bar()` 
+# is equivalent to `geom_bar(position = "stack")`.
+dplot + geom_bar()
+dplot + geom_bar(position = "fill")
+dplot + geom_bar(position = "dodge")
+dplot + geom_bar(position = "identity", alpha = 1 / 2, colour = "grey50")
+
+ggplot(diamonds, aes(color, colour = cut)) + 
+  geom_line(aes(group = cut), stat = "count") + 
+  xlab(NULL) + ylab(NULL) + 
+  theme(legend.position = "none")
+
+facet_wrap(~variable)
+facet_grid() lays out plots in a 2d grid, as defined by a formula: 
+  base + facet_grid(. ~ cyl)
+base + facet_grid(drv ~ .)
+base + facet_grid(drv ~ cyl)
+
+
+```
+
+# Themes 
+
+https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
+http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+```{r}
+# set a theme
+theme_set(theme_bw())
+
+# 
+color = "firebrick"
+shape = "diamond"
+size = 2
+
+# Add axes
+labs (x = "Year", y = "Temperature (°F)")
+xlab("Year") +
+  ylab("Temperature (°F)")
+
+axis.title.x = element_text(vjust = 0, size = 15)
+axis.title.y = element_text(vjust = 2, size = 15)
+
+theme(axis.title = element_text(size = 15, color ="firebrick",face = "italic"))
+
+ggtitle("Temperatures in Chicago")
+
+title = "Temperatures in Chicago",
+subtitle = "Seasonal pattern of daily temperatures from 1997 to 2001",
+
+theme(plot.title = element_text(family = "Bangers", hjust = .5, size = 25))
+
+theme(legend.position = "top")
+
+guides(color = guide_legend(override.aes = list(size = 6)))
+
+gb <- ggplot(chic, aes(x = date, y = temp, color = temp)) +
+  geom_point() +
+  labs(x = "Year", y = "Temperature (°F)", color = "Temperature (°F):")
+
+gb + scale_color_continuous() 
+
+gb + scale_color_gradient()
+
+gb + scale_color_gradient(low = "darkkhaki",
+                          high = "darkgreen")
+
+gb + scale_color_gradient2(midpoint = mid, low = "#dd8a0b",
+                           mid = "grey92", high = "#32a676")
+
+geom_vline(xintercept = 2, linetype = "dashed", size = 1)
+
+
+```
+
+
+# Lines
+Different options using integer or name
+
+```{r}
+lty <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
+linetypes <- data.frame(
+  y = seq_along(lty),
+  lty = lty
+) 
+ggplot(linetypes, aes(0, y)) + 
+  geom_segment(aes(xend = 5, yend = y, linetype = lty)) + 
+  scale_linetype_identity() + 
+  geom_text(aes(label = lty), hjust = 0, nudge_y = 0.2) +
+  scale_x_continuous(NULL, breaks = NULL) + 
+  scale_y_reverse(NULL, breaks = NULL)
+
+```
+
+
+
+
+
